@@ -1,0 +1,36 @@
+import pandas as pd
+
+df1 = pd.read_csv('u.data',sep='\t')
+df1.columns = ['user_id','item_id','rating','timestamp']
+df1.head()
+
+df2 = pd.read_csv('Movie_Id_Titles')
+df2.head()
+
+df = pd.merge(df1,df2,on='item_id')
+df.head()
+
+rating_and_no_of_rating = pd.DataFrame(df.groupby('title')['rating'].mean().sort_values(ascending=False))
+rating_and_no_of_rating
+
+rating_and_no_of_rating['no_of_ratings'] = df.groupby('title')['rating'].count()
+rating_and_no_of_rating
+
+rating_and_no_of_rating = rating_and_no_of_rating.sort_values('no_of_ratings',ascending=False)
+rating_and_no_of_rating.head()
+
+pt = df.pivot_table(index='user_id',columns='title',values='rating')
+pt.head()
+
+rating_and_no_of_rating.index
+
+test_movie = input('Enter movie name --> ')
+
+movie_vector = pt[test_movie].dropna()
+similar_movies = pt.corrwith(movie_vector)
+
+corr_df = pd.DataFrame(similar_movies,columns=['Correlation'])
+corr_df = corr_df.join(rating_and_no_of_rating['no_of_ratings'])
+
+corr_df = corr_df[corr_df['no_of_ratings']>100].sort_values('Correlation',ascending=False).dropna()
+corr_df.head(10)
